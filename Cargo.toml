@@ -1,0 +1,17 @@
+[package]
+name = "ssb-bendy-butt-rs"
+version = "0.1.0"
+authors = ["Andrew Reid <glyph@mycelial.technology>"]
+description = "Bendy Butt (BB) metafeed format for Secure Scuttlebutt (SSB)"
+edition = "2018"
+keywords = ["ssb", "scuttlebutt", "bendy butt", "bbfeed", "metafeed"]
+license = "LGPL-3.0"
+readme = "README.md"
+repository = "https://github.com/ssb-ngi-pointer/ssb-bendy-butt-rs"
+
+[dependencies]
+anyhow = "1.0"
+bendy = { version = "0.3.3", features = ["std", "serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+ssb-bfe-rs = { git = "https://github.com/ssb-ngi-pointer/ssb-bfe-rs", branch = "main" }
