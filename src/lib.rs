@@ -5,22 +5,25 @@ use ssb_bfe_rs::BfeValue;
 
 /* ENCODED TYPES */
 
-// [ payload, sig ]
+/// Represents a Bendy Butt message with BFE-encoded payload and signature.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
-struct BendyMsg(BendyPayload, BfeValue);
+pub struct BendyMsg(BendyPayload, BfeValue);
 
+/// Represents a Bendy Butt message payload with BFE-encoded values.
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 // [ author, sequence, previous, timestamp, content ]
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
-struct BendyPayload(BfeValue, i32, BfeValue, i64, BendyContent);
+pub struct BendyPayload(BfeValue, i32, BfeValue, i64, BendyContent);
 
+/// Represents the content payload variants of a BFE-encoded Bendy Butt message.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
-enum BendyContent {
+pub enum BendyContent {
     Private(BfeValue),
     Feed(BfeValue, BfeValue),
 }
 
 /* DECODED TYPES */
 
+/// Represents a decoded Bendy Butt message with payload fields and signature.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Msg {
     previous: String,
@@ -31,21 +34,26 @@ pub struct Msg {
     content: Content,
 }
 
+/// Represents the content payload variants of a decoded Bendy Butt message.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
-enum Content {
+pub enum Content {
     // encrypted message (box2)
     Private(String),
     Feed(FeedData, String),
 }
 
+/// Represents the message content payload feed data of a decoded Bendy Butt message.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
-struct FeedData {
+pub struct FeedData {
     feed_type: String,
     subfeed: String,
     metafeed: String,
     nonce: String,
 }
 
+/// Take a message in the form of a `Msg` `struct`, encode the fields using the BFE encoding scheme
+/// (excluding `sequence` and `timestamp`), then encode the whole message with Bencode and return
+/// the bytes as a `Vec<u8>`.
 pub fn encode(msg: &Msg) -> Result<Vec<u8>> {
     let content: BendyContent;
     match &msg.content {
@@ -73,17 +81,15 @@ pub fn encode(msg: &Msg) -> Result<Vec<u8>> {
     Ok(bencoded_msg)
 }
 
+/// Take a message in the form of a Bencoded byte vector, deserialize and decode the bytes to
+/// extract the message field data, then decode the BFE values and return a `Msg` `struct`.
 pub fn decode(bendy_msg: Vec<u8>) -> Result<Msg> {
-    let decoded = bendy::serde::from_bytes::<BendyMsg>(&bendy_msg)?;
-
-    let previous = serde_json::from_value(ssb_bfe_rs::decode(&decoded.0 .2)?)?;
-    let author = serde_json::from_value(ssb_bfe_rs::decode(&decoded.0 .0)?)?;
-    let sequence = decoded.0 .1;
-    let timestamp = decoded.0 .3;
-    let signature = serde_json::from_value(ssb_bfe_rs::decode(&decoded.1)?)?;
+    let BendyMsg(payload, signature) = bendy::serde::from_bytes(&bendy_msg)?;
+    let BendyPayload(author, sequence, previous, timestamp, content_data) = payload;
 
     let content;
-    match decoded.0 .4 {
+
+    match content_data {
         BendyContent::Private(msg) => {
             let decoded_msg = serde_json::from_value(ssb_bfe_rs::decode(&msg)?)?;
             content = Content::Private(decoded_msg);
@@ -96,11 +102,11 @@ pub fn decode(bendy_msg: Vec<u8>) -> Result<Msg> {
     }
 
     let msg = Msg {
-        previous,
-        author,
+        previous: serde_json::from_value(ssb_bfe_rs::decode(&previous)?)?,
+        author: serde_json::from_value(ssb_bfe_rs::decode(&author)?)?,
         sequence,
         timestamp,
-        signature,
+        signature: serde_json::from_value(ssb_bfe_rs::decode(&signature)?)?,
         content,
     };
 
