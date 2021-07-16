@@ -1,6 +1,10 @@
 # This workflow runs `cargo check`, `cargo test`, `cargo fmt` and `cargo clippy` when a pull-request is created. The stable toolchain is used for all jobs. See actions-rs for more information: https://github.com/actions-rs
 
-on: [pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 name: Continuous integration
 
