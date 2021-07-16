@@ -55,6 +55,7 @@ pub struct FeedData {
 /// (excluding `sequence` and `timestamp`), then encode the whole message with Bencode and return
 /// the bytes as a `Vec<u8>`.
 pub fn encode(msg: &Msg) -> Result<Vec<u8>> {
+    let testing_ci;
     let content: BendyContent;
     match &msg.content {
         Content::Private(msg) => {
