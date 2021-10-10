@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Andrew 'glyph' Reid
+#
+# SPDX-License-Identifier: Unlicense
+
 [package]
 name = "ssb-bendy-butt-rs"
 version = "0.1.0"
